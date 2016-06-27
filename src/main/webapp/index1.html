@@ -1,0 +1,120 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1"><link href="resources/styles/default.css" rel="stylesheet" type="text/css" /><title>
+	Unimed Curitiba - Controle de Aplicações de URA
+</title></head>
+<body>
+  <form name="frmPrincipal" method="post" action="Cronograma.aspx?ura=0&amp;mes=9" id="frmPrincipal">
+    <table>
+      <tr>
+        <td align="center">
+          <img alt="blank" height="3px" src="resources/images/blank.gif" width="160px" /><br />
+          <img alt="UNIMED Curitiba" src="resources/images/logo_unimed.jpg" />
+        </td>
+        <td align="center" class="title-page">
+          <img alt="blank" height="3px" src="resources/images/blank.gif" width="540px" /><br />
+           <span id="lblMainTitle">Cadastro de Cronogramas e Contas</span>
+         </td>
+        <td align="center">
+          <img alt="blank" height="3px" src="resources/images/blank.gif" width="160px" /><br />
+          <img alt="Telesul Enterprise" src="resources/images/logo_siemens.gif" />
+        </td>
+      </tr>
+      <tr>
+        <td align="center" class="menu-ivr">
+          <div id="pnlMenu" style="width:100%;">
+            URA<br />
+            <select name="ddlURA" id="ddlURA">
+		<option value="0">Cooperados</option>
+		<option selected="selected" value="1">Prestadores</option>
+	</select>
+            <br /><br />
+            Mês<br />
+            <select name="ddlMes" id="ddlMes">
+		<option value="0">&lt; Todos &gt;</option>
+		<option value="1">Janeiro</option>
+		<option selected="selected" value="2">Fevereiro</option>
+		<option value="3">Mar&#231;o</option>
+		<option value="4">Abril</option>
+		<option value="5">Maio</option>
+		<option value="6">Junho</option>
+		<option value="7">Julho</option>
+		<option value="8">Agosto</option>
+		<option value="9">Setembro</option>
+		<option value="10">Outubro</option>
+		<option value="11">Novembro</option>
+		<option value="12">Dezembro</option>
+
+	</select><br />
+            <img alt="blank" height="36" src="resources/images/blank.gif" width="3" /><br />
+            <input type="submit" name="btnExibir" value="Exibir" id="btnExibir" class="button" /><br />
+            <img alt="blank" height="12" src="resources/images/blank.gif" width="3" />
+</div>
+          
+        </td>
+        <td colspan="2">
+          <div>
+            <div id="pnlTitle" style="width:100%;text-align:center;">
+	
+              <img alt="blank" height="12" src="resources/images/blank.gif" width="3" /><br />
+              <span id="lblURA" class="title-ivr">URA Prestadores              </span><br />
+              <img alt="blank" height="12" src="resources/images/blank.gif" width="3" /><br />
+              <span id="lblMes" class="title-month">Mês de Referência - Fevereiro</span><br />
+              <img alt="blank" height="36" src="resources/images/blank.gif" width="3" />
+                  
+                  <table style="text-align:center;vertical-align:middle">
+                  <tr>
+                    <td class="table-color1">Mês</td>
+                    <td class="table-color2">Início<br />de<br />Hospitais</td>
+                    <td class="table-color1">Fim<br />de<br />Hospitais</td>
+                    <td class="table-color2">Início<br />de<br />Prestadores</td>
+                    <td class="table-color1">Fim<br />de<br />Prestadores</td>
+                    <td class="table-color2">Início<br />Meio<br />Magnético</td>
+                    <td class="table-color1">Fim<br />Meio<br />Magnético</td>
+                  </tr>
+                
+                  <tr>
+                    <td class="table-color1">
+                      2
+                    </td>
+                    <td class="table-color2">
+                      1
+                    </td>
+                    <td class="table-color1">
+                      15
+                    </td>
+                    <td class="table-color2">
+                      5
+                    </td>
+                    <td class="table-color1">
+                      15
+                    </td>
+                    <td class="table-color2">
+                      5
+                    </td>                                        
+                    <td class="table-color1">
+                      15
+                    </td>
+                  </tr>
+                
+                  </table>
+                
+                                              
+                  
+               <br />
+              <img alt="blank" height="24" src="resources/images/blank.gif" width="3" /><br />
+              <input type="submit" name="btnAlterar" value="Alterar Valores" id="btnAlterar" class="button" /><br />
+              <img alt="blank" height="36" src="resources/images/blank.gif" width="3" />
+</div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td align="center" class="copyright" colspan="3">
+          Portal Professional Services IVR Configuration - Copyright 2009</td>
+      </tr>
+    </table>
+  </form>
+</body>
+</html>
