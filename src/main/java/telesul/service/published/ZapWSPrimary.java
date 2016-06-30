@@ -16,11 +16,11 @@ import javax.jws.WebService;
 @WebService
 public interface ZapWSPrimary {
 
-    @WebResult(name = "retval")
-    public boolean isFeriado();
-
-    @WebResult(name = "retval")
-    public boolean isExceptionDiaWithinHours();
+//    @WebResult(name = "retval")
+//    public boolean isFeriado();
+//
+//    @WebResult(name = "retval")
+//    public boolean isExceptionDiaWithinHours();
 
     public void wsStatisticsTransfered(@WebParam(name = "telephone") String telephone,
             @WebParam(name = "digitsTyped") String digitsTyped,
@@ -55,5 +55,10 @@ public interface ZapWSPrimary {
             @WebParam(name = "transferedDirectToDefaultSkill") int transferedDirectToDefaultSkill,
             @WebParam(name = "skillset") String skillset,
             @WebParam(name = "flowName") String flowName,
-            @WebParam(name = "answers") String answers,@WebParam(name = "agent") String agent);
+            @WebParam(name = "answers") String answers, @WebParam(name = "agent") String agent);
+
+    public int wsConsultarPorTelefone(@WebParam(name = "telephone") String telephone);
+
+    public int wsConsultarPorCPFCNPJ(@WebParam(name = "cpf_cnpj") String cpf_cnpj);
+    
 }

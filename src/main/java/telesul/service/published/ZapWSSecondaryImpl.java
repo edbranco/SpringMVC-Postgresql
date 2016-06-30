@@ -7,6 +7,7 @@ package telesul.service.published;
 
 import javax.jws.WebMethod;
 import javax.jws.WebService;
+import telesul.service.CRMService;
 import telesul.service.ZapService;
 
 /**
@@ -17,9 +18,11 @@ import telesul.service.ZapService;
 public class ZapWSSecondaryImpl implements ZapWSSecondary {
 
     private final ZapService zapService;
+    private final CRMService crmService;
 
-    public ZapWSSecondaryImpl(ZapService zapService) {
+    public ZapWSSecondaryImpl(ZapService zapService, CRMService crmService) {
         this.zapService = zapService;
+        this.crmService = crmService;
     }
 
     @Override
@@ -42,8 +45,8 @@ public class ZapWSSecondaryImpl implements ZapWSSecondary {
 
     @Override
     @WebMethod()
-    public void swsStatisticsAbandoned(String telephone, String digitsTyped, String interactionPoints, int invalidOptionCount, int transferedDirectToDefaultSkill, String skillset, String flowName,int enteredInPesquisa) {
-        zapService.saveStatisticsAbandoned(telephone, digitsTyped, interactionPoints, invalidOptionCount, skillset, flowName,enteredInPesquisa);
+    public void swsStatisticsAbandoned(String telephone, String digitsTyped, String interactionPoints, int invalidOptionCount, int transferedDirectToDefaultSkill, String skillset, String flowName, int enteredInPesquisa) {
+        zapService.saveStatisticsAbandoned(telephone, digitsTyped, interactionPoints, invalidOptionCount, skillset, flowName, enteredInPesquisa);
     }
 
     @Override
@@ -54,7 +57,19 @@ public class ZapWSSecondaryImpl implements ZapWSSecondary {
 
     @Override
     @WebMethod()
-    public void swsStatisticsPesquisa(String telephone, String digitsTyped, String interactionPoints, int invalidOptionCount, int transferedDirectToDefaultSkill, String skillset, String flowName, String answers,String agent) {
-        zapService.saveStatisticsPesquisa(telephone, digitsTyped, interactionPoints, invalidOptionCount, transferedDirectToDefaultSkill, skillset, flowName, answers,agent);
+    public void swsStatisticsPesquisa(String telephone, String digitsTyped, String interactionPoints, int invalidOptionCount, int transferedDirectToDefaultSkill, String skillset, String flowName, String answers, String agent) {
+        zapService.saveStatisticsPesquisa(telephone, digitsTyped, interactionPoints, invalidOptionCount, transferedDirectToDefaultSkill, skillset, flowName, answers, agent);
+    }
+
+    @Override
+    @WebMethod()
+    public int swsConsultarPorTelefone(String telephone) {
+        return crmService.wsConsultarPorTelefone(telephone);
+    }
+
+    @Override
+    @WebMethod()
+    public int swsConsultarPorCPFCNPJ(String cpf_cnpj) {
+        return crmService.wsConsultarPorCPFCNPJ(cpf_cnpj);
     }
 }

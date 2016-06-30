@@ -7,6 +7,7 @@ package telesul.service.published;
 
 import javax.jws.WebMethod;
 import javax.jws.WebService;
+import telesul.service.CRMService;
 import telesul.service.ZapService;
 
 /**
@@ -17,22 +18,24 @@ import telesul.service.ZapService;
 public class ZapWSPrimaryImpl implements ZapWSPrimary {
 
     private final ZapService zapService;
+    private final CRMService crmService;
 
-    public ZapWSPrimaryImpl(ZapService zapService) {
+    public ZapWSPrimaryImpl(ZapService zapService, CRMService crmService) {
         this.zapService = zapService;
+        this.crmService = crmService;
     }
 
-    @Override
-    @WebMethod()
-    public boolean isFeriado() {
-        return zapService.isFeriado();
-    }
-
-    @Override
-    @WebMethod()
-    public boolean isExceptionDiaWithinHours() {
-        return zapService.isExceptionDiaWithinHours();
-    }
+//    @Override
+//    @WebMethod()
+//    public boolean isFeriado() {
+//        return zapService.isFeriado();
+//    }
+//
+//    @Override
+//    @WebMethod()
+//    public boolean isExceptionDiaWithinHours() {
+//        return zapService.isExceptionDiaWithinHours();
+//    }
 
     @Override
     @WebMethod()
@@ -42,8 +45,8 @@ public class ZapWSPrimaryImpl implements ZapWSPrimary {
 
     @Override
     @WebMethod()
-    public void wsStatisticsAbandoned(String telephone, String digitsTyped, String interactionPoints, int invalidOptionCount, int transferedDirectToDefaultSkill, String skillset, String flowName,int enteredInPesquisa) {
-        zapService.saveStatisticsAbandoned(telephone, digitsTyped, interactionPoints, invalidOptionCount, skillset, flowName,enteredInPesquisa);
+    public void wsStatisticsAbandoned(String telephone, String digitsTyped, String interactionPoints, int invalidOptionCount, int transferedDirectToDefaultSkill, String skillset, String flowName, int enteredInPesquisa) {
+        zapService.saveStatisticsAbandoned(telephone, digitsTyped, interactionPoints, invalidOptionCount, skillset, flowName, enteredInPesquisa);
     }
 
     @Override
@@ -54,7 +57,19 @@ public class ZapWSPrimaryImpl implements ZapWSPrimary {
 
     @Override
     @WebMethod()
-    public void wsStatisticsPesquisa(String telephone, String digitsTyped, String interactionPoints, int invalidOptionCount, int transferedDirectToDefaultSkill, String skillset, String flowName, String answers,String agent) {
-        zapService.saveStatisticsPesquisa(telephone, digitsTyped, interactionPoints, invalidOptionCount, transferedDirectToDefaultSkill, skillset, flowName, answers,agent);
+    public void wsStatisticsPesquisa(String telephone, String digitsTyped, String interactionPoints, int invalidOptionCount, int transferedDirectToDefaultSkill, String skillset, String flowName, String answers, String agent) {
+        zapService.saveStatisticsPesquisa(telephone, digitsTyped, interactionPoints, invalidOptionCount, transferedDirectToDefaultSkill, skillset, flowName, answers, agent);
+    }
+
+    @Override
+    @WebMethod()
+    public int wsConsultarPorTelefone(String telephone) {
+        return crmService.wsConsultarPorTelefone(telephone);
+    }
+
+    @Override
+    @WebMethod()
+    public int wsConsultarPorCPFCNPJ(String cpf_cnpj) {
+        return crmService.wsConsultarPorCPFCNPJ(cpf_cnpj);
     }
 }

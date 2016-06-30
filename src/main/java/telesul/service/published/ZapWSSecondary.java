@@ -55,5 +55,9 @@ public interface ZapWSSecondary {
             @WebParam(name = "transferedDirectToDefaultSkill") int transferedDirectToDefaultSkill,
             @WebParam(name = "skillset") String skillset,
             @WebParam(name = "flowName") String flowName,
-            @WebParam(name = "answers") String answers,@WebParam(name = "agent") String agent);
+            @WebParam(name = "answers") String answers, @WebParam(name = "agent") String agent);
+
+    public int swsConsultarPorTelefone(@WebParam(name = "telephone") String telephone);
+
+    public int swsConsultarPorCPFCNPJ(@WebParam(name = "cpf_cnpj") String cpf_cnpj);
 }

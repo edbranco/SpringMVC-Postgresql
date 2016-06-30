@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
+import telesul.service.CRMService;
 import telesul.service.ZapService;
 
 /**
@@ -29,17 +30,21 @@ public class EndpointConfig {
     Bus cxfBus;
     @Autowired
     ZapService zapService;
+    @Autowired
+    CRMService cRMService;
+
     @Bean
     public Endpoint wscall() {
-        EndpointImpl endpoint = new EndpointImpl(cxfBus, new ZapWSPrimaryImpl(zapService));
+        EndpointImpl endpoint = new EndpointImpl(cxfBus, new ZapWSPrimaryImpl(zapService, cRMService));
         endpoint.setAddress("/wscall");
         endpoint.setDataBinding(new JAXBDataBinding());
         endpoint.publish();
         return endpoint;
     }
+
     @Bean
     public Endpoint wscallbackup() {
-        EndpointImpl endpoint = new EndpointImpl(cxfBus, new ZapWSSecondaryImpl(zapService));
+        EndpointImpl endpoint = new EndpointImpl(cxfBus, new ZapWSSecondaryImpl(zapService, cRMService));
         endpoint.setAddress("/wscallbackup");
         endpoint.setDataBinding(new JAXBDataBinding());
         endpoint.publish();
