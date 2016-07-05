@@ -7,6 +7,7 @@ package telesul.service.published;
 
 import javax.jws.WebMethod;
 import javax.jws.WebService;
+import telesul.model.CPFCNPJCodigoClientValidationResult;
 import telesul.service.CRMService;
 import telesul.service.ZapService;
 
@@ -36,7 +37,6 @@ public class ZapWSPrimaryImpl implements ZapWSPrimary {
 //    public boolean isExceptionDiaWithinHours() {
 //        return zapService.isExceptionDiaWithinHours();
 //    }
-
     @Override
     @WebMethod()
     public void wsStatisticsTransfered(String telephone, String digitsTyped, String interactionPoints, int invalidOptionCount, int transferedDirectToDefaultSkill, String skillset, String flowName) {
@@ -69,7 +69,13 @@ public class ZapWSPrimaryImpl implements ZapWSPrimary {
 
     @Override
     @WebMethod()
-    public int wsConsultarPorCPFCNPJ(String cpf_cnpj) {
-        return crmService.wsConsultarPorCPFCNPJ(cpf_cnpj);
+    public CPFCNPJCodigoClientValidationResult wsConsultarPorCPFCNPJCodigoCliente(String cpf_cnpj) {
+        return crmService.wsConsultarPorCPFCNPJCodigoCliente(cpf_cnpj);
     }
+
+//    @Override
+//    @WebMethod()
+//    public int wsConsultarPorCodigoCliente(String codigoCliente) {
+//        return crmService.wsConsultarPorCodigoCliente(codigoCliente);
+//    }
 }

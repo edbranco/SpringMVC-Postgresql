@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import javax.annotation.PostConstruct;
 import javax.wsdl.WSDLException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -53,6 +52,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
+import telesul.model.CPFCNPJCodigoClientValidationResult;
 
 /**
  *
@@ -87,7 +87,7 @@ public class CRMServiceImpl implements CRMService {
      * appropriate discovery service url for other environments refer
      * http://technet.microsoft.com/en-us/library/gg309401.aspx
      */
-    private static final String DISCOVERY_SERVICE_URL = "https://disco.crm.dynamics.com/XRMServices/2011/Discovery.svc";
+//    private static final String DISCOVERY_SERVICE_URL = "https://disco.crm.dynamics.com/XRMServices/2011/Discovery.svc";
     private static final String ORG_URL = "https://zapcrmdesenvolvimento.api.crm2.dynamics.com/XRMServices/2011/Organization.svc";
     /**
      * Suffix for the Flat WSDL
@@ -97,6 +97,11 @@ public class CRMServiceImpl implements CRMService {
 
     private final int ATTRIBUTE_FOUND = 0;
     private final int ATTRIBUTE_NOT_FOUND = -1;
+    private final String telephoneAttr = "telephone1";
+    private final String codigoClienteAttr = "zap_codigocliente";
+    private final String cpfAttr = "zap_cpf";
+    private final String cnpjAttr = "zap_cnpj";
+    private final String ofertaAttr = "zap_qtdofertascontratadas";
 
     public CRMServiceImpl() {
     }
@@ -118,61 +123,179 @@ public class CRMServiceImpl implements CRMService {
                     organizationPolicy.getPolicy(),
                     organizationPolicy.getIssuerUri());
             // Retrieve organization stub using organization URL with the security data.
-            serviceStub = createOrganizationServiceStub(
-                    ORG_URL,
-                    securityData);
-            logger.info("CRM connection is initialized successfully!");
+            synchronized (serviceStub) {
+                serviceStub = createOrganizationServiceStub(
+                        ORG_URL,
+                        securityData);
+                logger.info("CRM connection is initialized successfully!");
+            }
+
         } catch (ParserConfigurationException | SAXException | IOException | URISyntaxException | XPathExpressionException | WSDLException | IllegalStateException | DeviceRegistrationFailedException | XMLStreamException ex) {
-            logger.error("CRM connection is failed to initialize successfully!");
+            logger.error("CRM connection is failed to initialize successfully!", ex);
         }
     }
 
     @Override
     public int wsConsultarPorTelefone(String telephone) {
         try {
-            Map<String, String> result = find("telephone1", telephone, "telephone1", "zap_qtdofertascontratadas");
+            Map<String, String> result = find(telephoneAttr, telephone, telephoneAttr, ofertaAttr);
 
-            if (StringUtils.isNotBlank(result.get("telephone1"))) {
-                if (StringUtils.isNotBlank(result.get("zap_qtdofertascontratadas"))) {
-                    logger.info("wsConsultarPorTelefone zap_qtdofertascontratadas::" + result.get("zap_qtdofertascontratadas"));
-                    return Integer.parseInt(result.get("zap_qtdofertascontratadas"));
+            if (StringUtils.isNotBlank(result.get(telephoneAttr))) {
+                if (StringUtils.isNotBlank(result.get(ofertaAttr))) {
+                    logger.info("wsConsultarPorTelefone " + ofertaAttr + "::" + result.get(ofertaAttr));
+                    return Integer.parseInt(result.get(ofertaAttr));
                 }
-                logger.info("wsConsultarPorTelefone telephone1::" + result.get("telephone1"));
+                logger.info("wsConsultarPorTelefone " + telephoneAttr + "::" + result.get(telephoneAttr));
                 return ATTRIBUTE_FOUND;
             }
         } catch (RemoteException | IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage ex) {
-            logger.error("wsConsultarPorTelefone error " + ex);
+            logger.error("wsConsultarPorTelefone error " + ex, ex);
+            initialize();
+            return wsConsultarPorTelefone(telephone);
         }
         return ATTRIBUTE_NOT_FOUND;
     }
 
     @Override
-    public int wsConsultarPorCPFCNPJ(String cpf_cnpj) {
+    public CPFCNPJCodigoClientValidationResult wsConsultarPorCPFCNPJCodigoCliente(String cpf_cnpj) {
         try {
-            Map<String, String> result = find("zap_cpf", cpf_cnpj, "zap_cpf", "zap_qtdofertascontratadas");
-            if (StringUtils.isNotBlank(result.get("zap_cpf"))) {
-                if (StringUtils.isNotBlank(result.get("zap_qtdofertascontratadas"))) {
-                    logger.info("wsConsultarPorCPFCNPJ zap_qtdofertascontratadas::" + result.get("zap_qtdofertascontratadas"));
-                    return Integer.parseInt(result.get("zap_qtdofertascontratadas"));
+            switch (cpf_cnpj.length()) {
+                case 11: {
+                    return consultaCPF(cpf_cnpj);
                 }
-                logger.info("wsConsultarPorCPFCNPJ zap_cpf::" + result.get("zap_cpf"));
-                return ATTRIBUTE_FOUND;
-            } else {
-                result = find("zap_cnpj", cpf_cnpj, "zap_cnpj", "zap_qtdofertascontratadas");
-                if (StringUtils.isNotBlank(result.get("zap_cnpj"))) {
-                    if (StringUtils.isNotBlank(result.get("zap_qtdofertascontratadas"))) {
-                        logger.info("wsConsultarPorCPFCNPJ zap_qtdofertascontratadas::" + result.get("zap_qtdofertascontratadas"));
-                        return Integer.parseInt(result.get("zap_qtdofertascontratadas"));
-                    }
-                    logger.info("wsConsultarPorCPFCNPJ zap_cnpj::" + result.get("zap_cnpj"));
-                    return ATTRIBUTE_FOUND;
+                case 14: {
+                    return consultaCNPJ(cpf_cnpj);
                 }
-
+                default:
+                    return consultarPorCodigoCliente(cpf_cnpj);
             }
         } catch (RemoteException | IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage ex) {
-            logger.error("wsConsultarPorCPFCNPJ error " + ex);
+            logger.error("wsConsultarPorCPFCNPJCodigoCliente error " + ex, ex);
+            initialize();
+            return wsConsultarPorCPFCNPJCodigoCliente(cpf_cnpj);
         }
-        return ATTRIBUTE_NOT_FOUND;
+    }
+
+    public CPFCNPJCodigoClientValidationResult consultarPorCodigoCliente(String codigoCliente) throws RemoteException, IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage {
+        CPFCNPJCodigoClientValidationResult ret = new CPFCNPJCodigoClientValidationResult();
+        ret.setOfertas(ATTRIBUTE_NOT_FOUND);
+        ret.setTypeOfValidation("209");//CodigoCliente Nâo Encontrado
+
+        Map<String, String> result = find(codigoClienteAttr, codigoCliente, codigoClienteAttr, ofertaAttr);
+
+        if (StringUtils.isNotBlank(result.get(codigoClienteAttr))) {
+            if (StringUtils.isNotBlank(result.get(ofertaAttr))) {
+                logger.info("consultarPorCodigoCliente " + ofertaAttr + "::" + result.get(ofertaAttr));
+                int offertas = Integer.parseInt(result.get(ofertaAttr));
+                ret.setOfertas(offertas);
+                ret.setTypeOfValidation("206");//CodigoCliente Encontrado
+                return ret;
+            }
+            logger.info("consultarPorCodigoCliente " + codigoClienteAttr + "::" + result.get(codigoClienteAttr));
+            ret.setTypeOfValidation("206");//CodigoCliente Encontrado
+            ret.setOfertas(ATTRIBUTE_FOUND);
+            return ret;
+        }
+
+        return ret;
+    }
+
+    public CPFCNPJCodigoClientValidationResult consultaCPF(String cpfVal) throws RemoteException, IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage {
+        CPFCNPJCodigoClientValidationResult ret = new CPFCNPJCodigoClientValidationResult();
+        ret.setOfertas(ATTRIBUTE_NOT_FOUND);
+        ret.setTypeOfValidation("207");//CPF Nâo Encontrado
+
+        String cpf = buildCPF(cpfVal);
+        logger.info("consultaCPF finding for CPF::{}", cpf);
+        Map<String, String> result = find(cpfAttr, cpf, cpfAttr, ofertaAttr);
+        if (StringUtils.isNotBlank(result.get(cpfAttr))) {
+            if (StringUtils.isNotBlank(result.get(ofertaAttr))) {
+                logger.info("consultaCPF " + ofertaAttr + "::" + result.get(ofertaAttr));
+                int offertas = Integer.parseInt(result.get(ofertaAttr));
+                ret.setOfertas(offertas);
+                ret.setTypeOfValidation("204");//CPF Encontrado
+                return ret;
+            }
+            logger.info("consultaCPF " + cpfAttr + "::" + result.get(cpfAttr));
+            ret.setTypeOfValidation("204");//CPF Encontrado
+            ret.setOfertas(ATTRIBUTE_FOUND);
+            return ret;
+        }
+        return ret;
+    }
+
+    public CPFCNPJCodigoClientValidationResult consultaCNPJ(String cnpjVal) throws RemoteException, IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage {
+        CPFCNPJCodigoClientValidationResult ret = new CPFCNPJCodigoClientValidationResult();
+        ret.setOfertas(ATTRIBUTE_NOT_FOUND);
+        ret.setTypeOfValidation("208");//CNPJ Nâo Encontrado
+
+        String cnpj = buildCNPJ(cnpjVal);
+        logger.info("consultaCNPJ finding for CNPJ::{}", cnpj);
+        Map<String, String> result = find(cnpjAttr, cnpj, cnpjAttr, ofertaAttr);
+        if (StringUtils.isNotBlank(result.get(cnpjAttr))) {
+            if (StringUtils.isNotBlank(result.get(ofertaAttr))) {
+                logger.info("consultaCNPJ " + ofertaAttr + "::" + result.get(ofertaAttr));
+                int offertas = Integer.parseInt(result.get(ofertaAttr));
+                ret.setOfertas(offertas);
+                ret.setTypeOfValidation("205");//CNPJ Encontrado
+                return ret;
+            }
+            logger.info("consultaCNPJ" + cnpjAttr + "::" + result.get(cnpjAttr));
+            ret.setTypeOfValidation("205");
+            ret.setOfertas(ATTRIBUTE_FOUND);
+            return ret;
+        }
+        return ret;
+    }
+
+    public String buildCPF(String ivrCPF) {
+        //format 069.867.578-91
+        StringBuilder cpf = new StringBuilder();
+        if (ivrCPF.length() == 11) {
+            for (int i = 0; i < ivrCPF.length(); i++) {
+                switch (i) {
+                    case 3:
+                    case 6:
+                        cpf.append(".");
+                        break;
+                    case 9:
+                        cpf.append("-");
+                        break;
+                }
+                cpf.append(ivrCPF.charAt(i));
+
+            }
+        } else {
+            cpf.append(ivrCPF);
+        }
+        return cpf.toString();
+    }
+
+    public String buildCNPJ(String ivrCNPJ) {
+        //format 62.307.210/0002-65
+        StringBuilder cnpj = new StringBuilder();
+        if (ivrCNPJ.length() == 14) {
+            for (int i = 0; i < ivrCNPJ.length(); i++) {
+                switch (i) {
+                    case 2:
+                    case 5:
+                        cnpj.append(".");
+                        break;
+                    case 8:
+                        cnpj.append("/");
+                        break;
+                    case 12:
+                        cnpj.append("-");
+                        break;
+                    default:
+                        break;
+                }
+                cnpj.append(ivrCNPJ.charAt(i));
+            }
+        } else {
+            cnpj.append(ivrCNPJ);
+        }
+        return cnpj.toString();
     }
 
     public Map<String, String> find(String inputAttrName, String inputAttrValue, String... resultAttrName) throws RemoteException, IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage {
