@@ -7,7 +7,7 @@ package telesul.service.published;
 
 import javax.jws.WebParam;
 import javax.jws.WebService;
-import telesul.model.CPFCNPJCodigoClientValidationResult;
+import telesul.model.ValidationResult;
 
 /**
  *
@@ -57,9 +57,9 @@ public interface ZapWSPrimary {
             @WebParam(name = "flowName") String flowName,
             @WebParam(name = "answers") String answers, @WebParam(name = "agent") String agent);
 
-    public int wsConsultarPorTelefone(@WebParam(name = "telephone") String telephone);
+    public ValidationResult wsConsultarPorTelefone(@WebParam(name = "telephone") String telephone);
 
-    public CPFCNPJCodigoClientValidationResult wsConsultarPorCPFCNPJCodigoCliente(@WebParam(name = "cpf_cnpj") String cpf_cnpj);
+    public ValidationResult wsConsultarPorCPFCNPJCodigoCliente(@WebParam(name = "cpf_cnpj") String cpf_cnpj);
     
 //    public int wsConsultarPorCodigoCliente(@WebParam(name = "codigoCliente") String codigoCliente);
     

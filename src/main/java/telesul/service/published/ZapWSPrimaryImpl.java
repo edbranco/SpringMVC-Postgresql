@@ -7,7 +7,7 @@ package telesul.service.published;
 
 import javax.jws.WebMethod;
 import javax.jws.WebService;
-import telesul.model.CPFCNPJCodigoClientValidationResult;
+import telesul.model.ValidationResult;
 import telesul.service.CRMService;
 import telesul.service.ZapService;
 
@@ -63,13 +63,13 @@ public class ZapWSPrimaryImpl implements ZapWSPrimary {
 
     @Override
     @WebMethod()
-    public int wsConsultarPorTelefone(String telephone) {
+    public ValidationResult wsConsultarPorTelefone(String telephone) {
         return crmService.wsConsultarPorTelefone(telephone);
     }
 
     @Override
     @WebMethod()
-    public CPFCNPJCodigoClientValidationResult wsConsultarPorCPFCNPJCodigoCliente(String cpf_cnpj) {
+    public ValidationResult wsConsultarPorCPFCNPJCodigoCliente(String cpf_cnpj) {
         return crmService.wsConsultarPorCPFCNPJCodigoCliente(cpf_cnpj);
     }
 

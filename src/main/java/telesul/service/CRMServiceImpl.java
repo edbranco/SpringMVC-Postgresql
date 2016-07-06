@@ -52,7 +52,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.xml.sax.SAXException;
-import telesul.model.CPFCNPJCodigoClientValidationResult;
+import telesul.model.ValidationResult;
 
 /**
  *
@@ -102,12 +102,13 @@ public class CRMServiceImpl implements CRMService {
     private final String cpfAttr = "zap_cpf";
     private final String cnpjAttr = "zap_cnpj";
     private final String ofertaAttr = "zap_qtdofertascontratadas";
+    private final String accountidAttr = "accountid";
 
     public CRMServiceImpl() {
     }
 
     @PostConstruct
-    public void initialize() {
+    public synchronized void initialize() {
         try {
             // The discovery service stub cannot be reused against the organization service
             // as the Issuer and AppliesTo may differ between the discovery and organization services.
@@ -123,12 +124,10 @@ public class CRMServiceImpl implements CRMService {
                     organizationPolicy.getPolicy(),
                     organizationPolicy.getIssuerUri());
             // Retrieve organization stub using organization URL with the security data.
-            synchronized (serviceStub) {
-                serviceStub = createOrganizationServiceStub(
-                        ORG_URL,
-                        securityData);
-                logger.info("CRM connection is initialized successfully!");
-            }
+            serviceStub = createOrganizationServiceStub(
+                    ORG_URL,
+                    securityData);
+            logger.info("CRM connection is initialized successfully!");
 
         } catch (ParserConfigurationException | SAXException | IOException | URISyntaxException | XPathExpressionException | WSDLException | IllegalStateException | DeviceRegistrationFailedException | XMLStreamException ex) {
             logger.error("CRM connection is failed to initialize successfully!", ex);
@@ -136,28 +135,39 @@ public class CRMServiceImpl implements CRMService {
     }
 
     @Override
-    public int wsConsultarPorTelefone(String telephone) {
+    public ValidationResult wsConsultarPorTelefone(String telephone) {
+        ValidationResult ret = new ValidationResult();
+        ret.setOfertas(ATTRIBUTE_NOT_FOUND);
+        ret.setTypeOfValidation("202");//Telefone Nâo Encontrado
         try {
-            Map<String, String> result = find(telephoneAttr, telephone, telephoneAttr, ofertaAttr);
+            Map<String, String> result = find(telephoneAttr, telephone, telephoneAttr, ofertaAttr, accountidAttr);
 
             if (StringUtils.isNotBlank(result.get(telephoneAttr))) {
+                if (StringUtils.isNotBlank(result.get(accountidAttr))) {
+                    ret.setGuid(result.get(accountidAttr));
+                }
                 if (StringUtils.isNotBlank(result.get(ofertaAttr))) {
                     logger.info("wsConsultarPorTelefone " + ofertaAttr + "::" + result.get(ofertaAttr));
-                    return Integer.parseInt(result.get(ofertaAttr));
+                    int offertas = Integer.parseInt(result.get(ofertaAttr));
+                    ret.setOfertas(offertas);
+                    ret.setTypeOfValidation("201");//Telefone Encontrado
+                    return ret;
                 }
+
                 logger.info("wsConsultarPorTelefone " + telephoneAttr + "::" + result.get(telephoneAttr));
-                return ATTRIBUTE_FOUND;
+                ret.setTypeOfValidation("201");//CodigoCliente Encontrado
+                ret.setOfertas(ATTRIBUTE_FOUND);
             }
         } catch (RemoteException | IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage ex) {
             logger.error("wsConsultarPorTelefone error " + ex, ex);
             initialize();
             return wsConsultarPorTelefone(telephone);
         }
-        return ATTRIBUTE_NOT_FOUND;
+        return ret;
     }
 
     @Override
-    public CPFCNPJCodigoClientValidationResult wsConsultarPorCPFCNPJCodigoCliente(String cpf_cnpj) {
+    public ValidationResult wsConsultarPorCPFCNPJCodigoCliente(String cpf_cnpj) {
         try {
             switch (cpf_cnpj.length()) {
                 case 11: {
@@ -176,14 +186,17 @@ public class CRMServiceImpl implements CRMService {
         }
     }
 
-    public CPFCNPJCodigoClientValidationResult consultarPorCodigoCliente(String codigoCliente) throws RemoteException, IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage {
-        CPFCNPJCodigoClientValidationResult ret = new CPFCNPJCodigoClientValidationResult();
+    public ValidationResult consultarPorCodigoCliente(String codigoCliente) throws RemoteException, IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage {
+        ValidationResult ret = new ValidationResult();
         ret.setOfertas(ATTRIBUTE_NOT_FOUND);
         ret.setTypeOfValidation("209");//CodigoCliente Nâo Encontrado
 
-        Map<String, String> result = find(codigoClienteAttr, codigoCliente, codigoClienteAttr, ofertaAttr);
+        Map<String, String> result = find(codigoClienteAttr, codigoCliente, codigoClienteAttr, ofertaAttr, accountidAttr);
 
         if (StringUtils.isNotBlank(result.get(codigoClienteAttr))) {
+            if (StringUtils.isNotBlank(result.get(accountidAttr))) {
+                ret.setGuid(result.get(accountidAttr));
+            }
             if (StringUtils.isNotBlank(result.get(ofertaAttr))) {
                 logger.info("consultarPorCodigoCliente " + ofertaAttr + "::" + result.get(ofertaAttr));
                 int offertas = Integer.parseInt(result.get(ofertaAttr));
@@ -200,15 +213,18 @@ public class CRMServiceImpl implements CRMService {
         return ret;
     }
 
-    public CPFCNPJCodigoClientValidationResult consultaCPF(String cpfVal) throws RemoteException, IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage {
-        CPFCNPJCodigoClientValidationResult ret = new CPFCNPJCodigoClientValidationResult();
+    public ValidationResult consultaCPF(String cpfVal) throws RemoteException, IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage {
+        ValidationResult ret = new ValidationResult();
         ret.setOfertas(ATTRIBUTE_NOT_FOUND);
         ret.setTypeOfValidation("207");//CPF Nâo Encontrado
 
         String cpf = buildCPF(cpfVal);
         logger.info("consultaCPF finding for CPF::{}", cpf);
-        Map<String, String> result = find(cpfAttr, cpf, cpfAttr, ofertaAttr);
+        Map<String, String> result = find(cpfAttr, cpf, cpfAttr, ofertaAttr, accountidAttr);
         if (StringUtils.isNotBlank(result.get(cpfAttr))) {
+            if (StringUtils.isNotBlank(result.get(accountidAttr))) {
+                ret.setGuid(result.get(accountidAttr));
+            }
             if (StringUtils.isNotBlank(result.get(ofertaAttr))) {
                 logger.info("consultaCPF " + ofertaAttr + "::" + result.get(ofertaAttr));
                 int offertas = Integer.parseInt(result.get(ofertaAttr));
@@ -224,15 +240,18 @@ public class CRMServiceImpl implements CRMService {
         return ret;
     }
 
-    public CPFCNPJCodigoClientValidationResult consultaCNPJ(String cnpjVal) throws RemoteException, IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage {
-        CPFCNPJCodigoClientValidationResult ret = new CPFCNPJCodigoClientValidationResult();
+    public ValidationResult consultaCNPJ(String cnpjVal) throws RemoteException, IOrganizationService_RetrieveMultiple_OrganizationServiceFaultFault_FaultMessage {
+        ValidationResult ret = new ValidationResult();
         ret.setOfertas(ATTRIBUTE_NOT_FOUND);
         ret.setTypeOfValidation("208");//CNPJ Nâo Encontrado
 
         String cnpj = buildCNPJ(cnpjVal);
         logger.info("consultaCNPJ finding for CNPJ::{}", cnpj);
-        Map<String, String> result = find(cnpjAttr, cnpj, cnpjAttr, ofertaAttr);
+        Map<String, String> result = find(cnpjAttr, cnpj, cnpjAttr, ofertaAttr, accountidAttr);
         if (StringUtils.isNotBlank(result.get(cnpjAttr))) {
+            if (StringUtils.isNotBlank(result.get(accountidAttr))) {
+                ret.setGuid(result.get(accountidAttr));
+            }
             if (StringUtils.isNotBlank(result.get(ofertaAttr))) {
                 logger.info("consultaCNPJ " + ofertaAttr + "::" + result.get(ofertaAttr));
                 int offertas = Integer.parseInt(result.get(ofertaAttr));

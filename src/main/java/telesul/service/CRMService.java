@@ -5,7 +5,7 @@
  */
 package telesul.service;
 
-import telesul.model.CPFCNPJCodigoClientValidationResult;
+import telesul.model.ValidationResult;
 
 /**
  *
@@ -13,9 +13,9 @@ import telesul.model.CPFCNPJCodigoClientValidationResult;
  */
 public interface CRMService {
 
-    public int wsConsultarPorTelefone(String telephone);
+    public ValidationResult wsConsultarPorTelefone(String telephone);
 
-    public CPFCNPJCodigoClientValidationResult wsConsultarPorCPFCNPJCodigoCliente(String cpf_cnpj);
+    public ValidationResult wsConsultarPorCPFCNPJCodigoCliente(String cpf_cnpj);
 
 //    public int wsConsultarPorCodigoCliente(String codigoCliente);
 }

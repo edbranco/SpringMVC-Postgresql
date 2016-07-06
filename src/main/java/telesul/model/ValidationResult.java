@@ -9,8 +9,9 @@ package telesul.model;
  *
  * @author lmohan
  */
-public class CPFCNPJCodigoClientValidationResult {
+public class ValidationResult {
 
+    private String guid;
     private int ofertas;
     private String typeOfValidation;
 
@@ -28,6 +29,14 @@ public class CPFCNPJCodigoClientValidationResult {
 
     public void setTypeOfValidation(String typeOfValidation) {
         this.typeOfValidation = typeOfValidation;
+    }
+
+    public String getGuid() {
+        return guid;
+    }
+
+    public void setGuid(String guid) {
+        this.guid = guid;
     }
 
 }
